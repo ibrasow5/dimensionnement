@@ -1,16 +1,14 @@
 import sys
-import math
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout,
-    QMessageBox, QFileDialog
-)
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox, QFileDialog
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+import math
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import ParagraphStyle
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -19,10 +17,10 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Calculateur de Puissance Reçue")
-        self.setGeometry(100, 100, 800, 650)  # Ajustement de la hauteur à 650 pixels
+        self.setGeometry(100, 100, 800, 650)
         self.setStyleSheet(
-            "background-color: #778899; "  # Couleur de fond principale
-            "color: #ECF0F1; "  # Couleur du texte principal
+            "background-color: #778899; "
+            "color: #ECF0F1; "
         )
 
         self.init_ui()
@@ -35,7 +33,7 @@ class MainWindow(QMainWindow):
 
         container_widget = QWidget(self)
         container_widget.setStyleSheet(
-            "background-color: #2C3E50; "  # Couleur de fond du container
+            "background-color: #2C3E50; "
             "border-radius: 8px;"
         )
         container_layout = QVBoxLayout()
@@ -47,7 +45,7 @@ class MainWindow(QMainWindow):
         title_label = QLabel("Calculateur de Puissance Reçue dans une Liaison Radio", self)
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ECF0F1;")  # Couleur du texte principal
+        title_label.setStyleSheet("color: #ECF0F1;")
         title_label.setWordWrap(True)
         container_layout.addWidget(title_label)
 
@@ -61,16 +59,16 @@ class MainWindow(QMainWindow):
         for label_text in labels:
             label = QLabel(label_text, self)
             label.setFont(QFont("Arial", 12, QFont.Bold))
-            label.setStyleSheet("color: #ECF0F1;")  # Couleur du texte principal
+            label.setStyleSheet("color: #ECF0F1;")
             form_layout.addWidget(label)
             line_edit = QLineEdit(self)
             line_edit.setFont(QFont("Arial", 12))
             line_edit.setStyleSheet(
                 "padding: 10px; "
-                "background-color: #DCDCDC; "  # Couleur de fond des inputs
-                "border: 1px solid #34495E; "  # Bordures et accents
+                "background-color: #DCDCDC; "
+                "border: 1px solid #34495E; "
                 "border-radius: 4px; "
-                "color: #000000;"  # Couleur du texte principal
+                "color: #000000;"
             )
             form_layout.addWidget(line_edit)
             self.inputs[label_text] = line_edit
@@ -80,7 +78,7 @@ class MainWindow(QMainWindow):
         calculate_button = QPushButton("Calculer", self)
         calculate_button.setFont(QFont("Arial", 14, QFont.Bold))
         calculate_button.setStyleSheet(
-            "background-color: #2980B9; "  # Couleur de mise en évidence du bouton
+            "background-color: #2980B9; "
             "color: #ECF0F1; "
             "border: none; "
             "border-radius: 4px; "
@@ -93,14 +91,13 @@ class MainWindow(QMainWindow):
         self.result_label.setAlignment(Qt.AlignCenter)
         result_font = QFont("Arial", 16, QFont.Bold)
         self.result_label.setFont(result_font)
-        self.result_label.setStyleSheet("color: #ECF0F1;")  # Couleur du texte principal
+        self.result_label.setStyleSheet("color: #ECF0F1;")
         container_layout.addWidget(self.result_label)
 
-        # Bouton pour générer le rapport
         report_button = QPushButton("Générer Rapport PDF", self)
         report_button.setFont(QFont("Arial", 14, QFont.Bold))
         report_button.setStyleSheet(
-            "background-color: #27AE60; "  # Couleur de mise en évidence du bouton
+            "background-color: #27AE60; "
             "color: #ECF0F1; "
             "border: none; "
             "border-radius: 4px; "
@@ -118,10 +115,7 @@ class MainWindow(QMainWindow):
             Gt = float(self.inputs["Gain de l'Antenne de Transmission (dB) :"].text())
             Gr = float(self.inputs["Gain de l'Antenne de Réception (dB) :"].text())
 
-            # Calcul du chemin de propagation libre en dB
             lp_db = 20 * (math.log10(d) + math.log10(f)) + 32.44
-            
-            # Calcul du bilan de liaison
             bilan_liaison_db = Pt + Gt + Gr - lp_db - Le
 
             self.result_label.setText(f"Puissance reçue: {bilan_liaison_db:.2f} dBm")
@@ -155,13 +149,9 @@ class MainWindow(QMainWindow):
             Gt = float(self.inputs["Gain de l'Antenne de Transmission (dB) :"].text())
             Gr = float(self.inputs["Gain de l'Antenne de Réception (dB) :"].text())
 
-            # Calcul du chemin de propagation libre en dB
             lp_db = 20 * (math.log10(d) + math.log10(f)) + 32.44
-            
-            # Calcul du bilan de liaison
             bilan_liaison_db = Pt + Gt + Gr - lp_db - Le
 
-            # Générer le rapport en PDF
             file_dialog = QFileDialog(self)
             file_path, _ = file_dialog.getSaveFileName(self, "Enregistrer le rapport PDF", "", "PDF files (*.pdf)")
 
@@ -181,6 +171,12 @@ class MainWindow(QMainWindow):
             doc = SimpleDocTemplate(file_path, pagesize=letter)
             elements = []
 
+            # Titre du document
+            title = Paragraph("Rapport de Calcul de Puissance Reçue", ParagraphStyle(name='TitleStyle',
+                             fontSize=18, alignment=1, spaceAfter=20))
+            elements.append(title)
+
+            # Tableau des paramètres
             data = [
                 ["Paramètre", "Valeur"],
                 ["Puissance de Transmission (dBm)", Pt],
